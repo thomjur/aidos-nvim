@@ -3,14 +3,14 @@ local config = require("aidos.config")
 local utils = require("aidos.utils")
 
 --- Function to create a prompt from user input
---- @return string|nil    The full completion prompt.
-function M.create_code_completion_prompt()
-  local highlighted_code = utils.get_highlighted_lines()
-  if highlighted_code == nil or highlighted_code == "" then
+--- @param code_input string  The highlighted code fragment that should be added to the prompt.
+--- @return string|nil        The full completion prompt.
+function M.create_code_completion_prompt(code_input)
+  if code_input == nil or code_input == "" then
     vim.notify("You must highlight some code first before using the code completion function!", vim.log.levels.WARN)
     return nil
   end
-  local completion_prompt = config.code_completion_prompt .. highlighted_code
+  local completion_prompt = config.code_completion_prompt .. code_input
   if config.debug then
     print("[DEBUG] The current prompt is: \n" .. completion_prompt)
   end
@@ -19,7 +19,8 @@ end
 
 --- Function to send the prompt to the API endpoint and insert the response below the cursor
 function M.send_code_completion_request()
-  local prompt = M.create_code_completion_prompt()
+  local highlighted_code, starting_line, final_line = utils.get_highlighted_lines()
+  local prompt = M.create_code_completion_prompt(highlighted_code)
   if not prompt then
     return
   end
@@ -71,10 +72,8 @@ function M.send_code_completion_request()
           end
           -- Create lines from code
           lines = vim.split(code_response["code"], "\n")
-          -- Get the current cursor position
-          local row = vim.api.nvim_win_get_cursor(0)[1]
           -- Insert the response content below the current line
-          vim.api.nvim_buf_set_lines(0, row, row, false, lines)
+          vim.api.nvim_buf_set_lines(0, starting_line, final_line, false, lines)
         else
           vim.notify("Failed to parse JSON response: " .. obj.stdout, vim.log.levels.ERROR)
         end

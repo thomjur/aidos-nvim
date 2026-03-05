@@ -7,8 +7,10 @@ function M.display_config()
   print(vim.inspect(aidos_config))
 end
 
---- Return the currently highlighted lines
----  @return string|nil  The currently highlighted lines or nil if nothing was highlighted.
+--- Return the currently highlighted lines plus the starting and final line numbers.
+---  @return string|nil   The currently highlighted lines or nil if nothing was highlighted.
+---  @return int          The starting line of the selected text.
+---  @return int          The final line of the selected text.
 function M.get_highlighted_lines()
   -- Exit visual mode to make sure that markers are set
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", true)
@@ -28,10 +30,10 @@ function M.get_highlighted_lines()
 
   -- Return lines or nil if table is empty
   if #saved_lines == 0 then
-    return nil
+    return nil, nil, nil
   end
 
-  return table.concat(saved_lines, "\n")
+  return table.concat(saved_lines, "\n"), start_line - 1, end_line
 end
 
 -- Function to read and parse a .env file. The key must be API_KEY in the .env file.
