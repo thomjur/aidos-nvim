@@ -5,12 +5,17 @@ local utils = require("aidos.utils")
 --- Function to create a prompt from user input
 --- @param code_input string  The highlighted code fragment that should be added to the prompt.
 --- @return string|nil        The full completion prompt.
-function M.create_code_completion_prompt(code_input)
+function M.create_code_completion_prompt(code_input, completion_mode)
   if code_input == nil or code_input == "" then
     vim.notify("You must highlight some code first before using the code completion function!", vim.log.levels.WARN)
     return nil
   end
-  local completion_prompt = config.code_completion_prompt .. code_input
+  local completion_prompt
+  if completion_mode == "code" then
+    completion_prompt = config.prompts.code_completion_prompt .. code_input
+  elseif completion_mode == "docstring" then
+    completion_prompt = config.prompts.docstring_completion_prompt .. code_input
+  end
   if config.debug then
     print("[DEBUG] The current prompt is: \n" .. completion_prompt)
   end
@@ -18,20 +23,21 @@ function M.create_code_completion_prompt(code_input)
 end
 
 --- Function to send the prompt to the API endpoint and insert the response below the cursor
-function M.send_code_completion_request()
+--- @param completion_mode "code"|"docstring" Select the completion mode.
+function M.send_code_completion_request(completion_mode)
   local highlighted_code, starting_line, final_line = utils.get_highlighted_lines()
-  local prompt = M.create_code_completion_prompt(highlighted_code)
+  local prompt = M.create_code_completion_prompt(highlighted_code, completion_mode)
   if not prompt then
     return
   end
 
-  local api_endpoint = config.url
+  local api_endpoint = config.api.url
   if not api_endpoint then
     vim.notify("API endpoint is not defined in config!", vim.log.levels.ERROR)
     return
   end
 
-  local api_key = config.api_key
+  local api_key = config.api.api_key
   if not api_key then
     vim.notify("API key is not defined in config!", vim.log.levels.ERROR)
     return
@@ -46,7 +52,7 @@ function M.send_code_completion_request()
     "-H", "Accept: application/json",
     "-H", "Authorization: Bearer " .. api_key,
     "-d", vim.json.encode({
-    model = config.model,
+    model = config.api.model,
     messages = {
       {
         role = "user",

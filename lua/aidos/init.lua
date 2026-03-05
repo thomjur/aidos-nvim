@@ -17,12 +17,12 @@ function M.setup(opts)
     default_config[k] = v
   end
   -- Parse api key from env file
-  local tmp_api_key = utility_functions.parse_api_key_from_env_file(default_config.env_path)
+  local tmp_api_key = utility_functions.parse_api_key_from_env_file(default_config.api.env_path)
   if tmp_api_key == "" then
     vim.notify("Could not find an api key in .env file " ..
-      default_config.env_path .. ". Is the key correctly stored under API_KEY=<API_KEY>?")
+      default_config.api.env_path .. ". Is the key correctly stored under API_KEY=<API_KEY>?")
   end
-  default_config["api_key"] = tmp_api_key
+  default_config.api["api_key"] = tmp_api_key
 end
 
 return M
