@@ -1,6 +1,6 @@
 # AIdos: Neovim Plugin for LLM-Powered Code Completion
 
-**LLM Integration for Code Completion and More in Neovim**
+**LLM Integration for Code Completion and Documentation in Neovim**
 
 ---
 
@@ -17,26 +17,27 @@
   - [Commands](#commands)
 - [Usage](#usage)
   - [Code Completion](#code-completion)
+  - [Docstring Completion](#docstring-completion)
   - [Utility Functions](#utility-functions)
 - [Contributing](#contributing)
 - [License](#license)
+- [File Structure](#file-structure)
 - [Versions](#versions)
-- [About](#about)
 
 ---
 
 ## Introduction
 
-**AIdos** is a Neovim plugin designed to integrate Large Language Models (LLMs) directly into your editor for **code completion**. It allows you to leverage the power of LLMs like Mistral or Claude Code to enhance your coding workflow, providing context-aware suggestions and automating repetitive tasks.
+**AIdos** is a Neovim plugin designed to integrate Large Language Models (LLMs) directly into your editor. It provides intelligent code completion and docstring generation, enhancing your coding workflow with context-aware suggestions and automated documentation.
 
 ---
 
 ## Features
 
 - **Code Completion**: Get intelligent, context-aware code suggestions powered by LLMs.
-- **Docstring Completion** (work in progress): Add docstrings to your existing functions.
-- **General Purpose AI** (work in progress): Ask your preferred LLM any questions in a chat window without having to leave the terminal.
+- **Docstring Completion**: Automatically add language-appropriate docstrings and type annotations to your functions and classes.
 - **Customizable**: Configure API endpoints, models, and prompts to fit your needs.
+- **Debug Mode**: Enable verbose logging for troubleshooting.
 
 ---
 
@@ -71,22 +72,27 @@ Configure your LLM provider in your Neovim config:
 
 ```lua
 require('aidos').setup(
-  {
-    url = 'https://api.mistral.ai/v1/chat/completions', -- Default: Mistral endpoint
-    env_path = '.aidos-env' -- Path to local env file with api key stored under AIDOS_API_KEY
-    model = 'codestral-2508', -- Default model
-    debug = false, -- Enable for verbose logging
+    api = {
+        url = 'http://localhost:1234/api/', -- Default API endpoint
+        env_path = '.aidos-env', -- Path to local env file with API key stored under AIDOS_API_KEY
+        model = 'codestral-2508', -- Default model
+        debug = false, -- Enable for verbose logging
   }
 )
 ```
 
 ### Keymaps
 
-Aidos sets up a default visual mode keymap for code completion:
+Aidos sets up default visual mode keymaps:
 
 ```lua
--- Default: <leader>ac in visual mode
-vim.keymap.set('v', '<leader>ac', '<cmd>lua require("aidos.functions").complete()<CR>', { desc = 'Aidos: Complete Code' })
+-- Code completion: <leader>ac in visual mode
+vim.keymap.set('v', '<leader>ac', function() require('aidos.functions').send_code_completion_request('code') end, 
+  { desc = 'Aidos: Complete Code' })
+
+-- Docstring completion: <leader>ad in visual mode
+vim.keymap.set('v', '<leader>ad', function() require('aidos.functions').send_code_completion_request('docstring') end,
+  { desc = 'Aidos: Add Docstrings' })
 ```
 
 ### Commands
@@ -100,8 +106,14 @@ vim.keymap.set('v', '<leader>ac', '<cmd>lua require("aidos.functions").complete(
 ### Code Completion
 
 1. Visually select the code you want to complete.
-2. Press `<leader>ac`. 
+2. Press `<leader>ac`.
 3. The completion will be inserted below your cursor.
+
+### Docstring Completion
+
+1. Visually select the code you want to document.
+2. Press `<leader>ad`.
+3. The code with added docstrings and type annotations will be inserted below your cursor.
 
 ### Utility Functions
 
@@ -146,4 +158,9 @@ Aidos is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 - Initial commit
 
-## About
+### 0.2 (Recent)
+
+- Added docstring completion feature
+- Restructured configuration system
+- Added debug mode for verbose logging
+- Updated default API endpoint to localhost
